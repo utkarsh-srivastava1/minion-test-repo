@@ -36,3 +36,14 @@ def power(x: float, y: float) -> float:
         return result
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
+
+
+def factorial(n: int) -> int:
+    if not isinstance(n, int):
+        raise TypeError('Input must be an integer')
+    if n < 0:
+        raise ValueError('Input must be a non-negative integer')
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * factorial(n-1)
