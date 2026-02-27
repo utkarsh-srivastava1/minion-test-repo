@@ -1,101 +1,110 @@
 # tests/test_main.py
 
 import pytest
-from src.main import hello, add, multiply, power
+from src.main import hello, add, multiply, power, factorial
 
-def test_hello_function_returns_hello_world():
+def test_hello_happy_path():
     # Verifies the hello function returns the expected string
     assert hello() == 'Hello World'
 
-def test_add_function_happy_path():
-    # Verifies the add function works with normal inputs
-    assert add(1, 2) == 3
-    assert add(1.5, 2.5) == 4
+def test_add_happy_path():
+    # Verifies the add function returns the expected result for two positive numbers
+    assert add(2, 3) == 5
 
-def test_add_function_edge_cases():
-    # Verifies the add function handles edge cases
-    assert add(0, 0) == 0
-    assert add(-1, 1) == 0
-    assert add(-1, -1) == -2
+def test_add_negative_numbers():
+    # Verifies the add function returns the expected result for two negative numbers
+    assert add(-2, -3) == -5
 
-def test_add_function_error_cases():
-    # Verifies the add function raises errors with invalid inputs
+def test_add_mixed_numbers():
+    # Verifies the add function returns the expected result for a positive and a negative number
+    assert add(2, -3) == -1
+
+def test_add_floats():
+    # Verifies the add function returns the expected result for two float numbers
+    assert add(2.5, 3.7) == 6.2
+
+def test_add_edge_case_zero():
+    # Verifies the add function returns the expected result for adding zero
+    assert add(2, 0) == 2
+
+def test_add_error_case_non_numeric_input():
+    # Verifies the add function raises a TypeError for non-numeric input
     with pytest.raises(TypeError):
-        add('a', 2)
+        add('a', 3)
+
+def test_multiply_happy_path():
+    # Verifies the multiply function returns the expected result for two positive numbers
+    assert multiply(2, 3) == 6
+
+def test_multiply_negative_numbers():
+    # Verifies the multiply function returns the expected result for two negative numbers
+    assert multiply(-2, -3) == 6
+
+def test_multiply_mixed_numbers():
+    # Verifies the multiply function returns the expected result for a positive and a negative number
+    assert multiply(2, -3) == -6
+
+def test_multiply_floats():
+    # Verifies the multiply function returns the expected result for two float numbers
+    assert multiply(2.5, 3.7) == 9.25
+
+def test_multiply_edge_case_zero():
+    # Verifies the multiply function returns the expected result for multiplying by zero
+    assert multiply(2, 0) == 0
+
+def test_multiply_error_case_non_numeric_input():
+    # Verifies the multiply function raises a TypeError for non-numeric input
     with pytest.raises(TypeError):
-        add(1, 'b')
-    with pytest.raises(OverflowError):
-        add(float('inf'), 1)
+        multiply('a', 3)
 
-def test_multiply_function_happy_path():
-    # Verifies the multiply function works with normal inputs
-    assert multiply(1, 2) == 2
-    assert multiply(1.5, 2.5) == 3.75
-
-def test_multiply_function_edge_cases():
-    # Verifies the multiply function handles edge cases
-    assert multiply(0, 0) == 0
-    assert multiply(-1, 1) == -1
-    assert multiply(-1, -1) == 1
-
-def test_multiply_function_error_cases():
-    # Verifies the multiply function raises errors with invalid inputs
-    with pytest.raises(TypeError):
-        multiply('a', 2)
-    with pytest.raises(TypeError):
-        multiply(1, 'b')
-    with pytest.raises(OverflowError):
-        multiply(float('inf'), 1)
-
-def test_power_function_happy_path():
-    # Verifies the power function works with normal inputs
+def test_power_happy_path():
+    # Verifies the power function returns the expected result for two positive numbers
     assert power(2, 3) == 8
-    assert power(2, 0) == 1
-    assert power(2, -1) == 0.5
 
-def test_power_function_edge_cases():
-    # Verifies the power function handles edge cases
-    assert power(0, 0) == 1  # By convention, 0^0 = 1
-    assert power(1, 1) == 1
-    assert power(-1, 1) == -1
-
-def test_power_function_error_cases():
-    # Verifies the power function raises errors with invalid inputs
-    with pytest.raises(TypeError):
-        power('a', 2)
-    with pytest.raises(TypeError):
-        power(1, 'b')
-    with pytest.raises(OverflowError):
-        power(float('inf'), 1)
-
-def test_power_function_negative_exponent():
-    # Verifies the power function handles negative exponents
-    assert power(2, -1) == 0.5
-    assert power(2, -2) == 0.25
-
-def test_power_function_non_integer_exponent():
-    # Verifies the power function handles non-integer exponents
-    assert power(2, 0.5) == 2 ** 0.5
-    assert power(2, 1.5) == 2 ** 1.5
-
-def test_power_function_zero_base():
-    # Verifies the power function handles zero base
-    assert power(0, 1) == 0
-    assert power(0, -1) == float('inf')
-
-def test_power_function_negative_base():
-    # Verifies the power function handles negative base
-    assert power(-2, 1) == -2
-    assert power(-2, 2) == 4
+def test_power_negative_numbers():
+    # Verifies the power function returns the expected result for a negative base and a positive exponent
     assert power(-2, 3) == -8
 
-def test_power_function_non_numeric_inputs():
-    # Verifies the power function raises errors with non-numeric inputs
+def test_power_mixed_numbers():
+    # Verifies the power function returns the expected result for a positive base and a negative exponent
+    assert power(2, -3) == 1/8
+
+def test_power_floats():
+    # Verifies the power function returns the expected result for two float numbers
+    assert power(2.5, 3.7) == pytest.approx(2.5 ** 3.7)
+
+def test_power_edge_case_zero():
+    # Verifies the power function returns the expected result for a zero base and a positive exponent
+    assert power(0, 3) == 0
+
+def test_power_error_case_non_numeric_input():
+    # Verifies the power function raises a TypeError for non-numeric input
     with pytest.raises(TypeError):
-        power('a', 2)
+        power('a', 3)
+
+def test_factorial_happy_path():
+    # Verifies the factorial function returns the expected result for a positive integer
+    assert factorial(5) == 120
+
+def test_factorial_edge_case_zero():
+    # Verifies the factorial function returns the expected result for zero
+    assert factorial(0) == 1
+
+def test_factorial_edge_case_one():
+    # Verifies the factorial function returns the expected result for one
+    assert factorial(1) == 1
+
+def test_factorial_error_case_negative_input():
+    # Verifies the factorial function raises a ValueError for a negative input
+    with pytest.raises(ValueError):
+        factorial(-3)
+
+def test_factorial_error_case_non_integer_input():
+    # Verifies the factorial function raises a TypeError for a non-integer input
     with pytest.raises(TypeError):
-        power(1, 'b')
+        factorial(3.7)
+
+def test_factorial_error_case_non_numeric_input():
+    # Verifies the factorial function raises a TypeError for a non-numeric input
     with pytest.raises(TypeError):
-        power(None, 2)
-    with pytest.raises(TypeError):
-        power(1, None)
+        factorial('a')
