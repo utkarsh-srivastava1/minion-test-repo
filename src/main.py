@@ -48,3 +48,11 @@ def modulo(x: float, y: float) -> float:
         return result
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
+
+
+def sum_of_natural_numbers(n: int) -> int:
+    if not isinstance(n, int):
+        raise TypeError('Input must be an integer')
+    if n < 1:
+        raise ValueError('Input must be a positive integer')
+    return n * (n + 1) // 2
