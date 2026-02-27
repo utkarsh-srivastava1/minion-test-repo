@@ -36,3 +36,15 @@ def power(x: float, y: float) -> float:
         return result
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
+
+
+def modulo(x: float, y: float) -> float:
+    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+        raise TypeError('Both inputs must be numbers')
+    if y == 0:
+        raise ZeroDivisionError('Cannot divide by zero')
+    try:
+        result = x % y
+        return result
+    except Exception as e:
+        raise ValueError(f'An error occurred: {str(e)}')
