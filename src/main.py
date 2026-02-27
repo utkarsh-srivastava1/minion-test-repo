@@ -48,3 +48,18 @@ def modulo(x: float, y: float) -> float:
         return result
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
+
+
+def exponential(n: float, exponent: int) -> float:
+    if not isinstance(n, (int, float)) or not isinstance(exponent, int):
+        raise TypeError('Base must be a number and exponent must be an integer')
+    if exponent == 0:
+        return 1
+    elif exponent < 0:
+        return 1 / exponential(n, -exponent)
+    elif exponent % 2 == 0:
+        half_pow = exponential(n, exponent // 2)
+        return half_pow * half_pow
+    else:
+        half_pow = exponential(n, (exponent - 1) // 2)
+        return n * half_pow * half_pow
