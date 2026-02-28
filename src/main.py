@@ -63,3 +63,15 @@ def exponential(n: float, exponent: int) -> float:
     else:
         half_pow = exponential(n, (exponent - 1) // 2)
         return n * half_pow * half_pow
+
+
+def square_root(x: float) -> float:
+    if not isinstance(x, (int, float)):
+        raise TypeError('Input must be a number')
+    if x < 0:
+        raise ValueError('Cannot calculate square root of negative number')
+    try:
+        result = x ** 0.5
+        return result
+    except Exception as e:
+        raise ValueError(f'An error occurred: {str(e)}')
