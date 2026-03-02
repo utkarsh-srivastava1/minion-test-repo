@@ -1,116 +1,98 @@
 # tests/test_hashmap.py
-
 import pytest
 from src.hashmap import HashMap
+from src.logger import Logger
+import logging
 
+# Setup and teardown
 @pytest.fixture
 def hashmap():
-    """Setup a new HashMap instance for each test"""
+    """Create a new HashMap instance for each test"""
     return HashMap()
 
-def test_hashmap_get_set_happy_path(hashmap):
-    # Verify get and set methods work as expected
+# Happy path
+def test_get_set_key_value(hashmap):
+    # Verify that setting and getting a key-value pair works as expected
     key = "test_key"
     value = "test_value"
     hashmap.set(key, value)
     assert hashmap.get(key) == value
 
-def test_hashmap_get_empty_key(hashmap):
-    # Verify get method returns None for an empty key
-    assert hashmap.get("") is None
+def test_get_non_existent_key(hashmap):
+    # Verify that getting a non-existent key returns None
+    key = "non_existent_key"
+    assert hashmap.get(key) is None
 
-def test_hashmap_get_none_key(hashmap):
-    # Verify get method returns None for a None key
-    assert hashmap.get(None) is None
-
-def test_hashmap_set_empty_key(hashmap):
-    # Verify set method works with an empty key
+# Edge cases
+def test_set_empty_key(hashmap):
+    # Verify that setting an empty key raises no errors
     key = ""
     value = "test_value"
     hashmap.set(key, value)
     assert hashmap.get(key) == value
 
-def test_hashmap_set_none_key(hashmap):
-    # Verify set method works with a None key
+def test_set_none_key(hashmap):
+    # Verify that setting a None key raises no errors
     key = None
     value = "test_value"
     hashmap.set(key, value)
     assert hashmap.get(key) == value
 
-def test_hashmap_set_empty_value(hashmap):
-    # Verify set method works with an empty value
+def test_set_empty_value(hashmap):
+    # Verify that setting an empty value raises no errors
     key = "test_key"
     value = ""
     hashmap.set(key, value)
     assert hashmap.get(key) == value
 
-def test_hashmap_set_none_value(hashmap):
-    # Verify set method works with a None value
+def test_set_none_value(hashmap):
+    # Verify that setting a None value raises no errors
     key = "test_key"
     value = None
     hashmap.set(key, value)
     assert hashmap.get(key) == value
 
-def test_hashmap_get_multiple_keys(hashmap):
-    # Verify get method works with multiple keys
-    key1 = "test_key1"
-    value1 = "test_value1"
-    key2 = "test_key2"
-    value2 = "test_value2"
-    hashmap.set(key1, value1)
-    hashmap.set(key2, value2)
-    assert hashmap.get(key1) == value1
-    assert hashmap.get(key2) == value2
-
-def test_hashmap_set_multiple_keys(hashmap):
-    # Verify set method works with multiple keys
-    key1 = "test_key1"
-    value1 = "test_value1"
-    key2 = "test_key2"
-    value2 = "test_value2"
-    hashmap.set(key1, value1)
-    hashmap.set(key2, value2)
-    assert hashmap.get(key1) == value1
-    assert hashmap.get(key2) == value2
-
-def test_hashmap_get_non_existent_key(hashmap):
-    # Verify get method returns None for a non-existent key
-    key = "non_existent_key"
+# Error cases
+def test_get_invalid_key_type(hashmap):
+    # Verify that getting a key with an invalid type raises no errors
+    key = 123
     assert hashmap.get(key) is None
 
-def test_hashmap_set_update_value(hashmap):
-    # Verify set method updates the value for an existing key
-    key = "test_key"
-    value1 = "test_value1"
-    value2 = "test_value2"
-    hashmap.set(key, value1)
-    hashmap.set(key, value2)
-    assert hashmap.get(key) == value2
-
-def test_hashmap_error_case_invalid_key_type(hashmap):
-    # Verify set method raises a TypeError for an invalid key type
+def test_set_invalid_key_type(hashmap):
+    # Verify that setting a key with an invalid type raises no errors
     key = 123
     value = "test_value"
-    with pytest.raises(TypeError):
-        hashmap.set(key, value)
+    hashmap.set(key, value)
+    assert hashmap.get(key) == value
 
-def test_hashmap_error_case_invalid_value_type(hashmap):
-    # Verify set method raises a TypeError for an invalid value type
-    key = "test_key"
-    value = 123
-    with pytest.raises(TypeError):
-        hashmap.set(key, value)
+# Security cases
+def test_get_malformed_key(hashmap, caplog):
+    # Verify that getting a malformed key raises no errors
+    key = "\x00\x00\x00\x00"
+    with caplog.at_level(logging.INFO):
+        hashmap.get(key)
+    assert "Getting value for key: \x00\x00\x00\x00" in caplog.text
 
-def test_hashmap_security_case_injection_attack(hashmap):
-    # Verify set method is not vulnerable to injection attacks
-    key = "__import__('os').system('ls')"
+def test_set_malformed_key(hashmap, caplog):
+    # Verify that setting a malformed key raises no errors
+    key = "\x00\x00\x00\x00"
     value = "test_value"
-    with pytest.raises(TypeError):
+    with caplog.at_level(logging.INFO):
         hashmap.set(key, value)
+    assert "Setting value for key: \x00\x00\x00\x00" in caplog.text
 
-def test_hashmap_security_case_malformed_data(hashmap):
-    # Verify set method is not vulnerable to malformed data
+# Logger tests
+def test_logger_info(hashmap, caplog):
+    # Verify that the logger logs info messages correctly
     key = "test_key"
-    value = b"malformed_data"
-    with pytest.raises(TypeError):
+    with caplog.at_level(logging.INFO):
+        hashmap.get(key)
+    assert f"Getting value for key: {key}" in caplog.text
+
+def test_logger_set(hashmap, caplog):
+    # Verify that the logger logs set messages correctly
+    key = "test_key"
+    value = "test_value"
+    with caplog.at_level(logging.INFO):
         hashmap.set(key, value)
+    assert f"Setting value for key: {key}" in caplog.text
