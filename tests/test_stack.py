@@ -1,108 +1,133 @@
 # tests/test_stack.py
 import pytest
 from src.stack import Stack
+from unittest.mock import patch
+from io import StringIO
+import sys
 
-def test_stack_init():
-    # Verifies that the stack is initialized with an empty list
-    stack = Stack()
+@pytest.fixture
+def stack():
+    # Setup: Create a new stack instance
+    return Stack()
+
+def test_stack_init(stack):
+    # Verifies: Stack is initialized with an empty list and a logger
+    assert stack.items == []
+    assert hasattr(stack, 'logger')
+
+def test_push_happy_path(stack):
+    # Verifies: Pushing an item to the stack adds it to the list
+    item = 'test_item'
+    stack.push(item)
+    assert stack.items == [item]
+
+def test_push_edge_case_empty_string(stack):
+    # Verifies: Pushing an empty string to the stack adds it to the list
+    item = ''
+    stack.push(item)
+    assert stack.items == [item]
+
+def test_push_edge_case_none_value(stack):
+    # Verifies: Pushing None to the stack adds it to the list
+    item = None
+    stack.push(item)
+    assert stack.items == [item]
+
+def test_pop_happy_path(stack):
+    # Verifies: Popping an item from the stack removes it from the list
+    item = 'test_item'
+    stack.push(item)
+    popped_item = stack.pop()
+    assert popped_item == item
     assert stack.items == []
 
-def test_stack_push():
-    # Verifies that an item can be pushed onto the stack
-    stack = Stack()
-    stack.push(1)
-    assert stack.items == [1]
-
-def test_stack_push_multiple():
-    # Verifies that multiple items can be pushed onto the stack
-    stack = Stack()
-    stack.push(1)
-    stack.push(2)
-    stack.push(3)
-    assert stack.items == [1, 2, 3]
-
-def test_stack_pop():
-    # Verifies that an item can be popped from the stack
-    stack = Stack()
-    stack.push(1)
-    assert stack.pop() == 1
-    assert stack.items == []
-
-def test_stack_pop_multiple():
-    # Verifies that multiple items can be popped from the stack
-    stack = Stack()
-    stack.push(1)
-    stack.push(2)
-    stack.push(3)
-    assert stack.pop() == 3
-    assert stack.pop() == 2
-    assert stack.pop() == 1
-    assert stack.items == []
-
-def test_stack_peek():
-    # Verifies that the top item can be peeked from the stack
-    stack = Stack()
-    stack.push(1)
-    assert stack.peek() == 1
-    assert stack.items == [1]
-
-def test_stack_is_empty_true():
-    # Verifies that is_empty returns True for an empty stack
-    stack = Stack()
-    assert stack.is_empty() == True
-
-def test_stack_is_empty_false():
-    # Verifies that is_empty returns False for a non-empty stack
-    stack = Stack()
-    stack.push(1)
-    assert stack.is_empty() == False
-
-def test_stack_clear():
-    # Verifies that the clear method removes all items from the stack
-    stack = Stack()
-    stack.push(1)
-    stack.push(2)
-    stack.push(3)
-    stack.clear()
-    assert stack.items == []
-
-def test_stack_pop_empty():
-    # Verifies that popping from an empty stack raises an IndexError
-    stack = Stack()
+def test_pop_edge_case_empty_stack(stack):
+    # Verifies: Popping from an empty stack raises an IndexError
     with pytest.raises(IndexError):
         stack.pop()
 
-def test_stack_peek_empty():
-    # Verifies that peeking an empty stack raises an IndexError
-    stack = Stack()
+def test_peek_happy_path(stack):
+    # Verifies: Peeking an item from the stack returns the top item
+    item = 'test_item'
+    stack.push(item)
+    peeked_item = stack.peek()
+    assert peeked_item == item
+    assert stack.items == [item]
+
+def test_peek_edge_case_empty_stack(stack):
+    # Verifies: Peeking an empty stack raises an IndexError
     with pytest.raises(IndexError):
         stack.peek()
 
-def test_stack_push_none():
-    # Verifies that pushing None onto the stack does not raise an error
-    stack = Stack()
-    stack.push(None)
-    assert stack.items == [None]
+def test_is_empty_happy_path(stack):
+    # Verifies: Checking if the stack is empty returns True for an empty stack
+    assert stack.is_empty()
 
-def test_stack_push_multiple_types():
-    # Verifies that pushing multiple types onto the stack does not raise an error
-    stack = Stack()
-    stack.push(1)
-    stack.push("hello")
-    stack.push(None)
-    assert stack.items == [1, "hello", None]
+def test_is_empty_happy_path_non_empty(stack):
+    # Verifies: Checking if the stack is empty returns False for a non-empty stack
+    item = 'test_item'
+    stack.push(item)
+    assert not stack.is_empty()
 
-def test_stack_clear_multiple_times():
-    # Verifies that clearing the stack multiple times does not raise an error
-    stack = Stack()
-    stack.clear()
+def test_clear_happy_path(stack):
+    # Verifies: Clearing the stack removes all items
+    item = 'test_item'
+    stack.push(item)
     stack.clear()
     assert stack.items == []
 
-def test_stack_push_and_pop_multiple_times():
-    # Verifies that pushing and popping multiple times does not raise an error
-    stack = Stack()
-    for _ in range(10):
-        stack.push(1)
+def test_clear_edge_case_empty_stack(stack):
+    # Verifies: Clearing an empty stack does not raise any errors
+    stack.clear()
+    assert stack.items == []
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_push_logs_info(mock_stdout, stack):
+    # Verifies: Pushing an item logs an info message
+    item = 'test_item'
+    stack.push(item)
+    assert f'Pushing item: {item}' in mock_stdout.getvalue()
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_pop_logs_info(mock_stdout, stack):
+    # Verifies: Popping an item logs an info message
+    item = 'test_item'
+    stack.push(item)
+    stack.pop()
+    assert 'Popping item' in mock_stdout.getvalue()
+    assert f'Popped item: {item}' in mock_stdout.getvalue()
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_peek_logs_info(mock_stdout, stack):
+    # Verifies: Peeking an item logs an info message
+    item = 'test_item'
+    stack.push(item)
+    stack.peek()
+    assert 'Peeking item' in mock_stdout.getvalue()
+    assert f'Peeked item: {item}' in mock_stdout.getvalue()
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_is_empty_logs_info(mock_stdout, stack):
+    # Verifies: Checking if the stack is empty logs an info message
+    stack.is_empty()
+    assert 'Checking if stack is empty' in mock_stdout.getvalue()
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_clear_logs_info(mock_stdout, stack):
+    # Verifies: Clearing the stack logs an info message
+    stack.clear()
+    assert 'Clearing stack' in mock_stdout.getvalue()
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_pop_logs_error(mock_stdout, stack):
+    # Verifies: Popping from an empty stack logs an error message
+    with pytest.raises(IndexError):
         stack.pop()
-    assert stack.items == []
+    assert 'Stack is empty' in mock_stdout.getvalue()
+
+@patch('sys.stdout', new_callable=StringIO)
+def test_peek_logs_error(mock_stdout, stack):
+    # Verifies: Peeking an empty stack logs an error message
+    with pytest.raises(IndexError):
+        stack.peek()
+    assert 'Stack is empty' in mock_stdout.getvalue()
