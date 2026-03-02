@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username"><br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password"><br><br>
+            <input type="hidden" id="csrf-token" name="csrf-token" value="">
+            <input type="submit" value="Login">
+            <p id="error-message"></p>
+            <p><a href="#" id="reset-password">Forgot Password?</a></p>
+        </form>
+    </div>
+    <script>
+        const form = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const resetPasswordLink = document.getElementById('reset-password');
+        const csrfTokenInput = document.getElementById('csrf-token');
+        
+        // Generate a random CSRF token
+        const csrfToken = crypto.randomUUID();
+        csrfTokenInput.value = csrfToken;
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const csrfToken = csrfTokenInput.value;
+            
+            if (username === '' || password === '') {
+                errorMessage.textContent = 'Please fill in all fields.';
+                return;
+            }
+            
+            // Hash the password before sending it to the server
+            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+            
+            // Example validation, replace with actual authentication logic
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                body: JSON.stringify({ username, hashedPassword })
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    // Login successful, redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    errorMessage.textContent = 'Invalid username or password.';
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                errorMessage.textContent = 'An error occurred.';
+            });
+        });
+        
+        resetPasswordLink.addEventListener('click', () => {
+            // Example password reset logic, replace with actual implementation
+            alert('Password reset link sent to your email.');
+        });
+    </script>
+</body>
+</html>
