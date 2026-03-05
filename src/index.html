@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form action="/login" method="post">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required pattern="^[a-zA-Z0-9]+$"><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"><br>
+        <input type="hidden" id="csrfToken" name="csrfToken" value="">
+        <input type="submit" value="Submit">
+    </form>
+    <script>
+        const form = document.querySelector('form');
+        const usernameInput = document.querySelector('#username');
+        const passwordInput = document.querySelector('#password');
+        const csrfTokenInput = document.querySelector('#csrfToken');
+        
+        // Generate CSRF token
+        fetch('/csrf-token', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            csrfTokenInput.value = data.csrfToken;
+        })
+        .catch((err) => console.error(err));
+        
+        form.addEventListener('submit', (e) => {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            const csrfToken = csrfTokenInput.value;
+            
+            // Input validation
+            if (!username || !password) {
+                alert('Please fill in all fields.');
+                e.preventDefault();
+            } else if (!username.match(/^[a-zA-Z0-9]+$/) || !password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+                alert('Invalid username or password.');
+                e.preventDefault();
+            } else {
+                // Hash password before sending using PBKDF2
+                const salt = crypto.getRandomValues(new Uint8Array(16));
+                crypto.subtle.importKey(
+                    "raw",
+                    new TextEncoder("utf-8").encode(password),
+                    { name: "PBKDF2" },
+                    false,
+                    ["deriveKey"]
+                )
+                .then((key) => {
+                    return crypto.subtle.deriveKey(
+                        {
+                            name: "PBKDF2",
+                            salt: salt,
+                            iterations: 100000,
+                            hash: { name: "SHA-256" }
+                        },
+                        key,
+                        { name: "AES-GCM", length: 256 },
+                        true,
+                        ["encrypt"]
+                    );
+                })
+                .then((derivedKey) => {
+                    const exportedKey = new Uint8Array(derivedKey.exportedKey.length);
+                    exportedKey.set(derivedKey.exportedKey);
+                    const hashedPassword = Array.from(exportedKey, (byte) => byte.toString(16).padStart(2, '0')).join('');
+                    
+                    // Send hashed password over HTTPS with CSRF token
+                    fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, hashedPassword, csrfToken })
+                    })
+                    .then((res) => res.json())
+                    .then((data) => console.log(data))
+                    .catch((err) => console.error(err));
+                })
+                .catch((err) => console.error(err));
+            }
+        });
+    </script>
+</body>
+</html>
