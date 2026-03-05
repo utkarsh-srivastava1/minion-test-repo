@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1 class='text-center'>Modern UI</h1>
+    <div class='row justify-content-center'>
+        <div class='col-md-6'>
+            <div class='card'>
+                <div class='card-body'>
+                    <h5 class='card-title'>Hello World</h5>
+                    <p class='card-text'>This is a modern UI page.</p>
+                    <form method='post'>
+                        <div class='mb-3'>
+                            <label for='a' class='form-label'>Number 1</label>
+                            <input type='number' class='form-control' id='a' name='a' required>
+                        </div>
+                        <div class='mb-3'>
+                            <label for='b' class='form-label'>Number 2</label>
+                            <input type='number' class='form-control' id='b' name='b' required>
+                        </div>
+                        <div class='mb-3'>
+                            <label for='operation' class='form-label'>Operation</label>
+                            <select class='form-select' id='operation' name='operation' required>
+                                <option value='add'>Add</option>
+                                <option value='multiply'>Multiply</option>
+                                <option value='power'>Power</option>
+                                <option value='modulo'>Modulo</option>
+                                <option value='divide'>Divide</option>
+                            </select>
+                        </div>
+                        <button type='submit' class='btn btn-primary'>Calculate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
