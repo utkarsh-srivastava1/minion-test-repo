@@ -1,6 +1,7 @@
+from src.user import app
+
 def hello() -> str:
     return 'Hello World'
-
 
 def add(a: float, b: float) -> float:
     if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
@@ -13,7 +14,6 @@ def add(a: float, b: float) -> float:
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
 
-
 def multiply(a: float, b: float) -> float:
     if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError('Both inputs must be numbers')
@@ -24,7 +24,6 @@ def multiply(a: float, b: float) -> float:
         return result
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
-
 
 def power(x: float, y: float) -> float:
     if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
@@ -37,7 +36,6 @@ def power(x: float, y: float) -> float:
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
 
-
 def modulo(x: float, y: float) -> float:
     if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
         raise TypeError('Both inputs must be numbers')
@@ -48,7 +46,6 @@ def modulo(x: float, y: float) -> float:
         return result
     except Exception as e:
         raise ValueError(f'An error occurred: {str(e)}')
-
 
 def exponential(n: float, exponent: int) -> float:
     if not isinstance(n, (int, float)) or not isinstance(exponent, int):
@@ -63,3 +60,6 @@ def exponential(n: float, exponent: int) -> float:
     else:
         half_pow = exponential(n, (exponent - 1) // 2)
         return n * half_pow * half_pow
+
+if __name__ == '__main__':
+    app.run(debug=True)
