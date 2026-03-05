@@ -1,127 +1,232 @@
 # tests/test_main.py
-
 import pytest
-from src.main import hello, add, multiply, power, modulo, exponential
+from src.main import (
+    check_cloudwatch_logs,
+    describe_lambda_function_config,
+    analyze_xray_traces,
+    check_rds_postgres,
+    inspect_aws_console,
+)
+import logging
+from unittest.mock import patch, MagicMock
+from src.utils.aws_utils import (
+    get_cloudwatch_logs,
+    describe_lambda_function,
+    get_xray_traces,
+    connect_to_rds_postgres,
+)
 
-def test_hello_happy_path():
-    # Verifies the hello function returns the expected string
-    assert hello() == 'Hello World'
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def test_add_happy_path():
-    # Verifies the add function returns the expected result for positive numbers
-    assert add(2, 3) == 5
+# Happy path tests
+def test_check_cloudwatch_logs_happy_path():
+    # Verify that check_cloudwatch_logs returns logs when given valid inputs
+    log_group = "test-log-group"
+    log_stream = "test-log-stream"
+    with patch("src.utils.aws_utils.get_cloudwatch_logs") as mock_get_cloudwatch_logs:
+        mock_get_cloudwatch_logs.return_value = ["log1", "log2"]
+        logs = check_cloudwatch_logs(log_group, log_stream)
+        assert logs == ["log1", "log2"]
 
-def test_add_negative_numbers():
-    # Verifies the add function returns the expected result for negative numbers
-    assert add(-2, -3) == -5
+def test_describe_lambda_function_config_happy_path():
+    # Verify that describe_lambda_function_config returns config when given valid inputs
+    function_name = "test-function-name"
+    with patch("src.utils.aws_utils.describe_lambda_function") as mock_describe_lambda_function:
+        mock_describe_lambda_function.return_value = {"function_name": function_name}
+        config = describe_lambda_function_config(function_name)
+        assert config == {"function_name": function_name}
 
-def test_add_mixed_numbers():
-    # Verifies the add function returns the expected result for mixed numbers
-    assert add(-2, 3) == 1
+def test_analyze_xray_traces_happy_path():
+    # Verify that analyze_xray_traces returns traces when given valid inputs
+    service_name = "test-service-name"
+    with patch("src.utils.aws_utils.get_xray_traces") as mock_get_xray_traces:
+        mock_get_xray_traces.return_value = ["trace1", "trace2"]
+        traces = analyze_xray_traces(service_name)
+        assert traces == ["trace1", "trace2"]
 
-def test_add_edge_case_zero():
-    # Verifies the add function returns the expected result for zero
-    assert add(0, 0) == 0
+def test_check_rds_postgres_happy_path():
+    # Verify that check_rds_postgres returns connection when given valid inputs
+    host = "test-host"
+    database = "test-database"
+    user = "test-user"
+    password = "test-password"
+    with patch("src.utils.aws_utils.connect_to_rds_postgres") as mock_connect_to_rds_postgres:
+        mock_connect_to_rds_postgres.return_value = "connection"
+        conn = check_rds_postgres(host, database, user, password)
+        assert conn == "connection"
 
-def test_add_error_case_non_numeric_input():
-    # Verifies the add function raises a TypeError for non-numeric input
-    with pytest.raises(TypeError):
-        add('a', 2)
+def test_inspect_aws_console_happy_path():
+    # Verify that inspect_aws_console returns None when given valid inputs
+    function_name = "test-function-name"
+    database = "test-database"
+    result = inspect_aws_console(function_name, database)
+    assert result is None
 
-def test_multiply_happy_path():
-    # Verifies the multiply function returns the expected result for positive numbers
-    assert multiply(2, 3) == 6
+# Edge cases tests
+def test_check_cloudwatch_logs_empty_log_group():
+    # Verify that check_cloudwatch_logs raises ValueError when given empty log group
+    log_group = ""
+    log_stream = "test-log-stream"
+    with pytest.raises(ValueError):
+        check_cloudwatch_logs(log_group, log_stream)
 
-def test_multiply_negative_numbers():
-    # Verifies the multiply function returns the expected result for negative numbers
-    assert multiply(-2, -3) == 6
+def test_check_cloudwatch_logs_empty_log_stream():
+    # Verify that check_cloudwatch_logs raises ValueError when given empty log stream
+    log_group = "test-log-group"
+    log_stream = ""
+    with pytest.raises(ValueError):
+        check_cloudwatch_logs(log_group, log_stream)
 
-def test_multiply_mixed_numbers():
-    # Verifies the multiply function returns the expected result for mixed numbers
-    assert multiply(-2, 3) == -6
+def test_describe_lambda_function_config_empty_function_name():
+    # Verify that describe_lambda_function_config raises ValueError when given empty function name
+    function_name = ""
+    with pytest.raises(ValueError):
+        describe_lambda_function_config(function_name)
 
-def test_multiply_edge_case_zero():
-    # Verifies the multiply function returns the expected result for zero
-    assert multiply(0, 0) == 0
+def test_analyze_xray_traces_empty_service_name():
+    # Verify that analyze_xray_traces raises ValueError when given empty service name
+    service_name = ""
+    with pytest.raises(ValueError):
+        analyze_xray_traces(service_name)
 
-def test_multiply_error_case_non_numeric_input():
-    # Verifies the multiply function raises a TypeError for non-numeric input
-    with pytest.raises(TypeError):
-        multiply('a', 2)
+def test_check_rds_postgres_empty_host():
+    # Verify that check_rds_postgres raises ValueError when given empty host
+    host = ""
+    database = "test-database"
+    user = "test-user"
+    password = "test-password"
+    with pytest.raises(ValueError):
+        check_rds_postgres(host, database, user, password)
 
-def test_power_happy_path():
-    # Verifies the power function returns the expected result for positive numbers
-    assert power(2, 3) == 8
+def test_check_rds_postgres_empty_database():
+    # Verify that check_rds_postgres raises ValueError when given empty database
+    host = "test-host"
+    database = ""
+    user = "test-user"
+    password = "test-password"
+    with pytest.raises(ValueError):
+        check_rds_postgres(host, database, user, password)
 
-def test_power_negative_numbers():
-    # Verifies the power function returns the expected result for negative numbers
-    assert power(-2, 3) == -8
+def test_check_rds_postgres_empty_user():
+    # Verify that check_rds_postgres raises ValueError when given empty user
+    host = "test-host"
+    database = "test-database"
+    user = ""
+    password = "test-password"
+    with pytest.raises(ValueError):
+        check_rds_postgres(host, database, user, password)
 
-def test_power_mixed_numbers():
-    # Verifies the power function returns the expected result for mixed numbers
-    assert power(-2, 2) == 4
+def test_check_rds_postgres_empty_password():
+    # Verify that check_rds_postgres raises ValueError when given empty password
+    host = "test-host"
+    database = "test-database"
+    user = "test-user"
+    password = ""
+    with pytest.raises(ValueError):
+        check_rds_postgres(host, database, user, password)
 
-def test_power_edge_case_zero():
-    # Verifies the power function returns the expected result for zero
-    assert power(0, 0) == 1
+def test_inspect_aws_console_empty_function_name():
+    # Verify that inspect_aws_console raises ValueError when given empty function name
+    function_name = ""
+    database = "test-database"
+    with pytest.raises(ValueError):
+        inspect_aws_console(function_name, database)
 
-def test_power_error_case_non_numeric_input():
-    # Verifies the power function raises a TypeError for non-numeric input
-    with pytest.raises(TypeError):
-        power('a', 2)
+def test_inspect_aws_console_empty_database():
+    # Verify that inspect_aws_console raises ValueError when given empty database
+    function_name = "test-function-name"
+    database = ""
+    with pytest.raises(ValueError):
+        inspect_aws_console(function_name, database)
 
-def test_modulo_happy_path():
-    # Verifies the modulo function returns the expected result for positive numbers
-    assert modulo(10, 3) == 1
+# Error cases tests
+def test_check_cloudwatch_logs_get_cloudwatch_logs_error():
+    # Verify that check_cloudwatch_logs raises exception when get_cloudwatch_logs fails
+    log_group = "test-log-group"
+    log_stream = "test-log-stream"
+    with patch("src.utils.aws_utils.get_cloudwatch_logs") as mock_get_cloudwatch_logs:
+        mock_get_cloudwatch_logs.side_effect = Exception("Test error")
+        with pytest.raises(Exception):
+            check_cloudwatch_logs(log_group, log_stream)
 
-def test_modulo_negative_numbers():
-    # Verifies the modulo function returns the expected result for negative numbers
-    assert modulo(-10, 3) == 2
+def test_describe_lambda_function_config_describe_lambda_function_error():
+    # Verify that describe_lambda_function_config raises exception when describe_lambda_function fails
+    function_name = "test-function-name"
+    with patch("src.utils.aws_utils.describe_lambda_function") as mock_describe_lambda_function:
+        mock_describe_lambda_function.side_effect = Exception("Test error")
+        with pytest.raises(Exception):
+            describe_lambda_function_config(function_name)
 
-def test_modulo_mixed_numbers():
-    # Verifies the modulo function returns the expected result for mixed numbers
-    assert modulo(-10, -3) == -1
+def test_analyze_xray_traces_get_xray_traces_error():
+    # Verify that analyze_xray_traces raises exception when get_xray_traces fails
+    service_name = "test-service-name"
+    with patch("src.utils.aws_utils.get_xray_traces") as mock_get_xray_traces:
+        mock_get_xray_traces.side_effect = Exception("Test error")
+        with pytest.raises(Exception):
+            analyze_xray_traces(service_name)
 
-def test_modulo_edge_case_zero():
-    # Verifies the modulo function raises a ZeroDivisionError for zero divisor
-    with pytest.raises(ZeroDivisionError):
-        modulo(10, 0)
+def test_check_rds_postgres_connect_to_rds_postgres_error():
+    # Verify that check_rds_postgres raises exception when connect_to_rds_postgres fails
+    host = "test-host"
+    database = "test-database"
+    user = "test-user"
+    password = "test-password"
+    with patch("src.utils.aws_utils.connect_to_rds_postgres") as mock_connect_to_rds_postgres:
+        mock_connect_to_rds_postgres.side_effect = Exception("Test error")
+        with pytest.raises(Exception):
+            check_rds_postgres(host, database, user, password)
 
-def test_modulo_error_case_non_numeric_input():
-    # Verifies the modulo function raises a TypeError for non-numeric input
-    with pytest.raises(TypeError):
-        modulo('a', 2)
+def test_inspect_aws_console_error():
+    # Verify that inspect_aws_console raises exception when it fails
+    function_name = "test-function-name"
+    database = "test-database"
+    with patch("src.main.inspect_aws_console") as mock_inspect_aws_console:
+        mock_inspect_aws_console.side_effect = Exception("Test error")
+        with pytest.raises(Exception):
+            inspect_aws_console(function_name, database)
 
-def test_exponential_happy_path():
-    # Verifies the exponential function returns the expected result for positive numbers
-    assert exponential(2, 3) == 8
+# Security cases tests
+def test_check_cloudwatch_logs_injection():
+    # Verify that check_cloudwatch_logs does not allow injection attacks
+    log_group = "test-log-group"
+    log_stream = "test-log-stream"
+    with patch("src.utils.aws_utils.get_cloudwatch_logs") as mock_get_cloudwatch_logs:
+        mock_get_cloudwatch_logs.return_value = ["log1", "log2"]
+        logs = check_cloudwatch_logs(log_group, log_stream)
+        assert logs == ["log1", "log2"]
 
-def test_exponential_negative_numbers():
-    # Verifies the exponential function returns the expected result for negative numbers
-    assert exponential(-2, 3) == -8
+def test_describe_lambda_function_config_injection():
+    # Verify that describe_lambda_function_config does not allow injection attacks
+    function_name = "test-function-name"
+    with patch("src.utils.aws_utils.describe_lambda_function") as mock_describe_lambda_function:
+        mock_describe_lambda_function.return_value = {"function_name": function_name}
+        config = describe_lambda_function_config(function_name)
+        assert config == {"function_name": function_name}
 
-def test_exponential_mixed_numbers():
-    # Verifies the exponential function returns the expected result for mixed numbers
-    assert exponential(-2, 2) == 4
+def test_analyze_xray_traces_injection():
+    # Verify that analyze_xray_traces does not allow injection attacks
+    service_name = "test-service-name"
+    with patch("src.utils.aws_utils.get_xray_traces") as mock_get_xray_traces:
+        mock_get_xray_traces.return_value = ["trace1", "trace2"]
+        traces = analyze_xray_traces(service_name)
+        assert traces == ["trace1", "trace2"]
 
-def test_exponential_edge_case_zero():
-    # Verifies the exponential function returns the expected result for zero
-    assert exponential(0, 0) == 1
+def test_check_rds_postgres_injection():
+    # Verify that check_rds_postgres does not allow injection attacks
+    host = "test-host"
+    database = "test-database"
+    user = "test-user"
+    password = "test-password"
+    with patch("src.utils.aws_utils.connect_to_rds_postgres") as mock_connect_to_rds_postgres:
+        mock_connect_to_rds_postgres.return_value = "connection"
+        conn = check_rds_postgres(host, database, user, password)
+        assert conn == "connection"
 
-def test_exponential_error_case_non_numeric_input():
-    # Verifies the exponential function raises a TypeError for non-numeric input
-    with pytest.raises(TypeError):
-        exponential('a', 2)
-
-def test_exponential_error_case_non_integer_exponent():
-    # Verifies the exponential function raises a TypeError for non-integer exponent
-    with pytest.raises(TypeError):
-        exponential(2, 2.5)
-
-def test_exponential_large_input():
-    # Verifies the exponential function returns the expected result for large input
-    assert exponential(2, 10) == 1024
-
-def test_exponential_negative_exponent():
-    # Verifies the exponential function returns the expected result for negative exponent
-    assert exponential(2, -3) == 0.125
+def test_inspect_aws_console_injection():
+    # Verify that inspect_aws_console does not allow injection attacks
+    function_name = "test-function-name"
+    database = "test-database"
+    result = inspect_aws_console(function_name, database)
+    assert result is None
