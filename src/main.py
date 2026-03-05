@@ -1,65 +1,66 @@
-def hello() -> str:
+import webbrowser
+import os
+from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__)
+
+def hello():
     return 'Hello World'
 
-
-def add(a: float, b: float) -> float:
+def add(a, b):
     if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError('Both inputs must be numbers')
-    try:
-        result = a + b
-        if result == float('inf') or result == float('-inf'):
-            raise OverflowError('Result is too large')
-        return result
-    except Exception as e:
-        raise ValueError(f'An error occurred: {str(e)}')
+    return a + b
 
-
-def multiply(a: float, b: float) -> float:
+def multiply(a, b):
     if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError('Both inputs must be numbers')
-    try:
-        result = a * b
-        if result == float('inf') or result == float('-inf'):
-            raise OverflowError('Result is too large')
-        return result
-    except Exception as e:
-        raise ValueError(f'An error occurred: {str(e)}')
+    return a * b
 
-
-def power(x: float, y: float) -> float:
-    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+def power(a, b):
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError('Both inputs must be numbers')
-    try:
-        result = x ** y
-        if result == float('inf') or result == float('-inf'):
-            raise OverflowError('Result is too large')
-        return result
-    except Exception as e:
-        raise ValueError(f'An error occurred: {str(e)}')
+    return a ** b
 
-
-def modulo(x: float, y: float) -> float:
-    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+def modulo(a, b):
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError('Both inputs must be numbers')
-    if y == 0:
+    if b == 0:
         raise ZeroDivisionError('Cannot divide by zero')
-    try:
-        result = x % y
-        return result
-    except Exception as e:
-        raise ValueError(f'An error occurred: {str(e)}')
+    return a % b
 
+def divide(a, b):
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+        raise TypeError('Both inputs must be numbers')
+    if b == 0:
+        raise ZeroDivisionError('Cannot divide by zero')
+    return a / b
 
-def exponential(n: float, exponent: int) -> float:
-    if not isinstance(n, (int, float)) or not isinstance(exponent, int):
-        raise TypeError('Base must be a number and exponent must be an integer')
-    if exponent == 0:
-        return 1
-    elif exponent < 0:
-        return 1 / exponential(n, -exponent)
-    elif exponent % 2 == 0:
-        half_pow = exponential(n, exponent // 2)
-        return half_pow * half_pow
-    else:
-        half_pow = exponential(n, (exponent - 1) // 2)
-        return n * half_pow * half_pow
+@app.route('/'
+        , methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        try:
+            a = float(request.form['a'])
+            b = float(request.form['b'])
+            operation = request.form['operation']
+            if operation == 'add':
+                result = add(a, b)
+            elif operation == 'multiply':
+                result = multiply(a, b)
+            elif operation == 'power':
+                result = power(a, b)
+            elif operation == 'modulo':
+                result = modulo(a, b)
+            elif operation == 'divide':
+                result = divide(a, b)
+            else:
+                return 'Invalid operation'
+            return jsonify({'result': result})
+        except Exception as e:
+            return str(e)
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
